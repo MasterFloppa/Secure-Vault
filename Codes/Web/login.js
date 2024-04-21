@@ -14,7 +14,7 @@ async function sha256(message) {
 }
 
 
-localStorage.clear();
+//localStorage.clear();
 
 
 async function authenticate() {
@@ -23,13 +23,13 @@ async function authenticate() {
 
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    const FA = document.getElementById('FA').value; //here
 
-    //sah256 for admin= 8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
     hashed_password = await sha256(password);
-    console.log(hashed_password);
+    //console.log(hashed_password);
 
     var url = "https://192.168.182.230/middle"; // Assuming this is the authentication endpoint
-    var params = "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(hashed_password);
+    var params = "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(hashed_password)+"&FA="+encodeURIComponent(FA); //here
 
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
@@ -40,6 +40,7 @@ async function authenticate() {
                     alert('Login successful!');
                     localStorage.setItem('username', username);
                     localStorage.setItem('password', hashed_password);
+                    localStorage.setItem('FA', FA); //here
 
                     window.location.href = './home.html'; // Redirect to home page
                     // Redirect or perform other actions upon successful login
