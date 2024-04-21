@@ -2,7 +2,8 @@
 function meow() {
     var url = "https://192.168.182.230/middle"; // Assuming this is the authentication endpoint
     var params = "username=" + encodeURIComponent(localStorage.getItem('username'))
-        + "&password=" + encodeURIComponent(localStorage.getItem('password'));
+        + "&password=" + encodeURIComponent(localStorage.getItem('password'))
+        + "&FA=" + encodeURIComponent(localStorage.getItem('FA')); //here
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
         if (xhr.readyState === XMLHttpRequest.DONE) {
@@ -44,7 +45,7 @@ async function deriveKey(password, username) {
     );
 }
 
-var IV = new Uint8Array([43, 176, 185, 12, 183, 207, 91, 13, 93, 242, 50, 21]);
+var IV= new Uint8Array([43, 176, 185, 12, 183, 207, 91, 13, 93, 242, 50, 21]);
 
 // Function to encrypt only the file content
 async function encryptFileContent(fileBuffer, key) {
@@ -79,25 +80,25 @@ document.getElementById("uploadButton").addEventListener("click", async function
         try {
             // Derive cryptographic key from password and username
             const key = await deriveKey(password, username);
-
-            // Create a new FormData object and append the encrypted file content
-
-            var encryptedFile = await encryptFile(file, key);
-
-
+	    
+	    // Create a new FormData object and append the encrypted file content
+	    
+	    var encryptedFile = await encryptFile(file, key);
+	    
+            
             const fileBuffer = await encryptedFile.arrayBuffer();
-
-            console.log(encryptedFile.name);
-            console.log("encrypted msg:", new Uint8Array(fileBuffer));
-
-            var formData = new FormData();
+    
+    	    //console.log(encryptedFile.name);
+    	    //console.log("encrypted msg:",new Uint8Array(fileBuffer));
+	    
+	    var formData = new FormData();
             formData.append("file", encryptedFile);
 
-            const response = await fetch("https://192.168.182.230/upload/", {
-                method: 'POST',
-                body: formData
+            const response = await fetch("https://192.168.182.230/upload/",{
+            	method: 'POST',
+            	body: formData
             })
-            console.log('eeee', await response.text())
+            //console.log('eeee', await response.text())
         } catch (error) {
             console.error("Encryption error:", error);
         }
@@ -115,11 +116,11 @@ async function decryptFile(encryptedFile, key) {
 
 async function decryptBuffer(encryptedBuffer, key) {
     // Decrypt the buffer using the provided key
-    console.log({ IV, encryptedBuffer, key });
+    //console.log({ IV, encryptedBuffer, key});
     let unpaddedArrayBuf = new ArrayBuffer(encryptedBuffer.length - 2);
     unpaddedArrayBuf = encryptedBuffer.slice(0, -2);
     console.log({ unpaddedArrayBuf })
-    const decryptedBuffer = await crypto.subtle.decrypt({ name: "AES-GCM", iv: IV }, key, unpaddedArrayBuf).catch(e => console.error('decrypt', e));
+    const decryptedBuffer = await crypto.subtle.decrypt({ name: "AES-GCM",iv: IV }, key, unpaddedArrayBuf).catch(e => console.error('decrypt', e));
     return decryptedBuffer;
 }
 
@@ -142,35 +143,35 @@ async function downloadFile(filename) {
         xhr.onreadystatechange = function () {
             if (xhr.readyState === XMLHttpRequest.DONE) {
                 if (xhr.status === 200) {
-                    var ppXhr = new XMLHttpRequest();
-                    ppXhr.open('GET', filename, true);
-                    ppXhr.responseType = 'arraybuffer'; // The response type should be 'arraybuffer' for binary data
-                    ppXhr.onload = async function () {
-                        if (ppXhr.status === 200) {
-                            // Get the encrypted buffer representing the file
-                            var encryptedBuffer = ppXhr.response;
+                var ppXhr = new XMLHttpRequest();
+		ppXhr.open('GET', filename, true);
+		ppXhr.responseType = 'arraybuffer'; // The response type should be 'arraybuffer' for binary data
+		ppXhr.onload = async function() {
+		    if (ppXhr.status === 200) {
+			// Get the encrypted buffer representing the file
+			var encryptedBuffer = ppXhr.response;
 
-                            // Decrypt the buffer
-                            try {
-                                const decryptedBuffer = await decryptBuffer(encryptedBuffer, key).catch(console.error);
-                                // Convert the decrypted buffer to a Blob
-                                var decryptedBlob = new Blob([decryptedBuffer], { type: 'application/octet-stream' });
+			// Decrypt the buffer
+			try {
+			    const decryptedBuffer = await decryptBuffer(encryptedBuffer, key).catch(console.error);
+			    // Convert the decrypted buffer to a Blob
+			    var decryptedBlob = new Blob([decryptedBuffer], { type: 'application/octet-stream' });
 
-                                // Create a temporary anchor element to trigger the download
-                                var a = document.createElement('a');
-                                a.href = window.URL.createObjectURL(decryptedBlob);
-                                a.download = filename; // Set the file name
-                                document.body.appendChild(a);
-                                a.click();
-                                document.body.removeChild(a);
-                            } catch (error) {
-                                console.error('Decryption error:', error);
-                            }
-                        }
-                    };
+			    // Create a temporary anchor element to trigger the download
+			    var a = document.createElement('a');
+			    a.href = window.URL.createObjectURL(decryptedBlob);
+			    a.download = filename; // Set the file name
+			    document.body.appendChild(a);
+			    a.click();
+			    document.body.removeChild(a);
+			} catch (error) {
+			    console.error('Decryption error:', error);
+			}
+		    }
+		};
 
-                    ppXhr.send();
-                    console.log("Received data:", xhr.response);
+		ppXhr.send();
+                    //console.log("Received data:", xhr.response);
                 } else {
                     console.error('Failed to fetch data. Status:', xhr.status);
                 }
@@ -178,9 +179,14 @@ async function downloadFile(filename) {
         };
         xhr.send();
     }
-}
+
+    
+        
+	}
 
 document.getElementById("downloadButton").addEventListener("click", function () {
     var filename = './output.txt'; // Specify the path to your file
     downloadFile(filename);
 });
+
+
