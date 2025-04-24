@@ -5,7 +5,7 @@ import struct
 import hashlib
 
 def get_totp(secret_base64):
-    t = int(time.time()) // 30
+    t = int(time.time()) // 60
 
     print("t=", t)
 
@@ -33,4 +33,4 @@ def get_totp(secret_base64):
 
     return str(totp).zfill(6)
 
-print(get_totp("ORSXG5A=="))
+print(get_totp("YWRtaW4="))
